@@ -1,0 +1,42 @@
+import requests
+topics_url = 'https://github.com/topics'
+response = requests.get(topics_url)
+response.status_code
+len(response.text)
+page_contents = response.text
+page_contents[:1000]
+from bs4 import BeautifulSoup
+doc = BeautifulSoup(page_contents, 'html.parser')
+selection_class = 'f3 lh-condensed mb-0 mt-1 Link--primary'
+topic_title_tags = doc.find_all('p', {'class': selection_class})
+len(topic_title_tags)
+topic_title_tags[:5]
+desc_selector = 'f5 color-fg-muted mb-0 mt-1'
+topic_desc_tags = doc.find_all('p', {'class': desc_selector})
+topic_desc_tags[:5]
+topic_title_tags0 = topic_title_tags[0]
+topic_title_tags0.parent
+topic_link_tags = doc.find_all('a', {'class': 'd-flex no-underline'})
+len(topic_link_tags)
+topic0_url = "https://github.com" + topic_link_tags[0]['href']
+topic_titles = []
+for tag in topic_title_tags:
+    topic_titles.append(tag.text)
+print(topic_titles)
+topic_descs = []
+for tag in topic_desc_tags:
+    topic_descs.append(tag.text.strip())
+topic_descs[:5]
+topic_urls = []
+base_url = "https://github.com"
+for tag in topic_link_tags:
+    topic_urls.append(base_url + tag['href'])
+topic_urls
+import pandas as pd
+topics_dict = {
+    'title': topic_titles,
+    'description': topic_descs,
+    'url': topic_urls
+}
+topics_df = pd.DataFrame()
+topics_df.to_csv('topics.csv')
