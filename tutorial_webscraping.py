@@ -32,7 +32,6 @@ topics_dict = {
 }
 topics_df = pd.DataFrame(topics_dict)
 topics_df.to_csv('topics.csv', index=None)
-print(topics_df)
 
 ## Getting info out of a topic page
 
@@ -67,6 +66,10 @@ for i in range(len(repo_tags)):
         topic_repos_dict['repo_name'].append(repo_info[1])
         topic_repos_dict['repo_url'].append(repo_info[2])
         topic_repos_dict['stars'].append(repo_info[3])
+
+##Final Code
+
+import os
 def get_topic_page(topic_url):
     #Download the page
     response = requests.get(topic_page_url)
@@ -109,4 +112,60 @@ def get_topic_repos(topic_doc):
 
 topic_repos_df = pd.DataFrame(topic_repos_dict)
 topic_repos_df.to_csv('topic_repos.csv', index=None)
-print(topic_repos_df)
+
+def scrape_topic(topic_url, path):
+    if os.path.exists(path):
+        print("File {} already exists. Skipping...".format(path)) 
+        return
+    topic_df= get_topic_repos(get_topic_page(topic_url))  
+    topic_df.to_csv(path, index=None)
+
+
+## Write a single function to:
+# 1) Get the list of topics from the topics page
+# 2) Get the list of top repos from the inividual topic pages
+# 3) For each topic, create a csv of the top repos for the topic
+
+def get_topic_titles(doc):
+    selection_class = 'f3 lh-condensed mb-0 mt-1 Link--primary'
+    topic_title_tags = doc.find_all('p', {'class': selection_class})
+    topic_titles = []
+    for tag in topic_title_tags:
+        topic_titles.append(tag.text)
+    return topic_titles
+
+def get_topic_descs(doc):
+    desc_selector = 'f5 color-fg-muted mb-0 mt-1'
+    topic_desc_tags = doc.find_all('p', {'class': desc_selector})
+    topic_descs = []
+    for tag in topic_desc_tags:
+        topic_descs.append(tag.text.strip())
+    return topic_descs
+
+def get_topic_urls(doc):
+    topic_link_tags = doc.find_all('a', {'class': 'd-flex no-underline'})
+    topic_titles = []
+    topic_urls = []
+    base_url = "https://github.com"
+    for tag in topic_link_tags:
+        topic_urls.append(base_url + tag['href'])
+    return topic_urls
+
+def scrape_topics():
+    topics_url = 'https://github.com/topics'
+    response = requests.get(topics_url)
+    if response.status_code !=200:
+        raise Exception('Failed to load page {}'.format(topics_url))
+    topics_dict = {
+        'title': get_topic_titles(doc),
+        'description': get_topic_descs(doc),
+        'url': get_topic_urls(doc)
+    }
+    return pd.DataFrame(topics_dict)
+def scrape_topic_repos():
+    print('Scraping list of topics')
+    topics_df = scrape_topics()
+    os.makedirs('data', exists_ok=True)
+    for index, row in topics_df.iterrows():
+        print('Scraping top repositories for "{}"'.format(row['title']))
+        scrape_topic(row['url'], +'data/{}.csv'.format(row['title']))
