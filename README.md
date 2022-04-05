@@ -1,6 +1,6 @@
 - 👋 Hi, I’m @qre
-- 👀 I’m interested in python, django, webscraping, etc.
-- 🌱 I’m currently learning all of the above  
+- 👀 I’m interested in Python3, Django, webscraping, Elasticsearch, Docker, etc.
+- 🌱 I’m currently learning ES, Docker
 - 📫 How to reach me: zaikingleb@gmail.com
 
 <!---
